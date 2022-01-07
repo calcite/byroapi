@@ -14,7 +14,7 @@ from typing import BinaryIO, Union
 from aioyagmail import AIOSMTP
 
 from .http_handler import HttpHandler
-from .template import Template, TemplateError, draw_on_template
+from .template import Template, draw_on_template
 from .base import ByroapiException
 
 

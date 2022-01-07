@@ -35,6 +35,7 @@ class HttpHandler:
 
         self._form_result_config = CascaDict({
             "download": False,
+            "download_name": None,
             "email": {
                 "to": None,
                 "subject": None,
@@ -60,9 +61,14 @@ class HttpHandler:
             return web.json_response({}, status=500, reason=str(e))
 
         if resp:
+            download_name = form_payload["result"]["download_name"]
+
+            # https://stackoverflow.com/a/35469345
             return web.Response(
                 headers=MultiDict({
-                    "Content-Disposition": "Attachment; filename=neco.pdf"
+                    "Content-Disposition":
+                        f"Attachment;filename={download_name}"
+                        if download_name else "Attachment"
                 }),
                 body=resp.getvalue(), content_type="application/pdf"
             )

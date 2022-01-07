@@ -1,0 +1,55 @@
+general:
+  log_level: INFO  # Logging level [DEBUG, INFO, WARNING, ERROR, CRITICAL]
+
+templating:
+  field_defaults:  # Lowest level details for field elements (better keep as-is)
+    string:
+      default: ""
+      coords:
+        x: null
+        y: null
+      custom:
+        - property: Font
+          values: [ "Helvetica", 12 ]
+
+    image:
+      default: null
+      coords:
+        x: null
+        y: null
+      height: null
+      width: null
+      mask: [ 0,0,0,0,0,0 ]
+      custom: []
+
+    page_break:
+      default: null
+      custom: [ ]
+
+  templates:  # List of defined templates
+    - id:  # Template ID (string)
+        oc_default: null
+        oc_schema:
+          type: string
+          nullable: false
+      template:  # Template source
+        path:  # PDF file or a directory (in case of path value substitution)
+          oc_default: null
+          oc_schema:
+            type: string
+            nullable: false
+        path_value_substitution:  #
+          value:
+            oc_default: null
+            oc_schema:
+              type: string
+          pattern:
+            oc_default: null
+            oc_schema:
+              type: string
+      field_defaults: {}
+      fields: []
+
+
+
+

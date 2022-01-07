@@ -100,7 +100,9 @@ def main(ctx, config, get_config_template, fill_form, output):
             sys.exit(0)
 
         click.secho("Running byroapi application ..", fg='green')
-        # Start your app here
+
+        # Start the server
+        byroapi.start()
 
         loop.run_forever()
     except KeyboardInterrupt:
@@ -111,7 +113,7 @@ def main(ctx, config, get_config_template, fill_form, output):
     finally:
         try:
             # Stop and cleanup your app here
-
+            byroapi.stop()
             loop.run_until_complete(asyncio.sleep(1.0))
             loop.close()
         except Exception as e:

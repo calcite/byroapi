@@ -9,7 +9,9 @@
 import asyncio
 import io
 import logging
-from typing import BinaryIO
+from typing import BinaryIO, Union
+
+from aioyagmail import AIOSMTP
 
 from .http_handler import HttpHandler
 from .template import Template, TemplateError, draw_on_template
@@ -30,7 +32,11 @@ class ByroApi:
         self._loop = loop or asyncio.get_event_loop()
 
         # REST
-        self._http_handler = HttpHandler(self, self._loop)
+        self._http_handler = HttpHandler(
+            self._loop,
+            form_request_clbk=self._process_form,
+            template_update_clbk=self._update_template
+        )
         self._http_task = None
 
         # Templates
@@ -69,11 +75,38 @@ class ByroApi:
         finally:
             filled_form.close()
 
+    async def _process_form(self, form_payload: dict) -> Union[BinaryIO, None]:
+
+        filled_form = self._fill_form(form_payload)
+
+        if form_payload["result"]["email"]["to"] is not None:
+            # Sending the result by mail
+            async with AIOSMTP(**self._config["email"]["smtp"]) as yag:
+                # Prepare the buffer
+                filled_form.seek(0)
+
+                # Attachment file name
+                filled_form.name = form_payload["result"]["email"][
+                    "attachments"] or f"{form_payload['template']}.pdf"
+                form_payload["result"]["email"]["attachments"] = filled_form
+                await yag.send(**form_payload["result"]["email"])
+
+            logger.info("Filled form %s sent to %s.", form_payload["template"],
+                        form_payload["result"]["email"]["to"])
+
+        if form_payload["result"]["download"]:
+            return filled_form
+        else:
+            return None
+
+    def _update_template(self, template_payload):
+        pass
+
     def start(self):
         # REST
         self._http_task = self._loop.create_task(self._http_handler.run(
-            host=self._config['ui']['addr'],
-            port=self._config['ui']['port']
+            host=self._config['rest_api']['addr'],
+            port=self._config['rest_api']['port']
         ))
 
     def stop(self):

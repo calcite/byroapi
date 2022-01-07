@@ -5,11 +5,13 @@
 """
 
 import logging
-import asyncio
-import pkg_resources
 
-from aiohttp import web, ClientSession, WSMsgType, WSServerHandshakeError, \
-    ClientOSError
+from aiohttp import web
+from multidict import MultiDict
+from cascadict import CascaDict
+
+from .base import ByroapiException
+
 # import sockjs
 
 # JS_ASSETS = pkg_resources.resource_filename('byroapi',
@@ -48,12 +50,14 @@ from aiohttp import web, ClientSession, WSMsgType, WSServerHandshakeError, \
 #         self._msg_callback(NOTIFICATION_LOG_MESSAGE,
 #                            **record.__dict__)
 
+class RestApiError(ByroapiException):
+    pass
+
 
 class HttpHandler:
 
-    def __init__(self, main_app, loop):
+    def __init__(self, loop, form_request_clbk=None, template_update_clbk=None):
 
-        self._main = main_app
         self._loop = loop
         self._sockjs_manager = None
         self._app = web.Application()
@@ -63,24 +67,19 @@ class HttpHandler:
         self._host_port = None
         self._logger = logging.getLogger("byroapi.REST")
 
-        # Logging
-        # self._proxy_logger = proxy_logger
-        # self._proxy_logger.addHandler(WsHandler(self._send_notification,
-        #                                         log_level))
+        self._form_request_clbk = form_request_clbk
+        self._template_update_clbk = template_update_clbk
 
-    # def _sockjs_handler(self, msg, session):
-    #     """ SockJS handler is now not doing anything because we onlu use
-    #     SockJS for downstream.
-    #     :param session:
-    #     :return:
-    #     """
-    #     self._logger.debug("SockJS handler called")
-    #     if msg.tp == sockjs.MSG_OPEN:
-    #         self._sockjs_manager = session.manager
-    #         # session.manager.broadcast("Someone joined.")
-    #     elif msg.tp == sockjs.MSG_CLOSED:
-    #         self._sockjs_manager = None
-    #         # session.manager.broadcast("Someone left.")
+        self._form_result_config = CascaDict({
+            "download": False,
+            "email": {
+                "to": None,
+                "subject": None,
+                "contents": None,
+                "attachments": None
+            }
+        })
+
 
     # @asyncio.coroutine
     # def _index(self, request):
@@ -94,23 +93,49 @@ class HttpHandler:
     # def _favicon_32(self, request):
     #     return web.Response(body=FAVICON_32, content_type='image/x-icon')
 
-    @asyncio.coroutine
-    def _get_state(self, request):
-        # TODO - return app state
-        temp = self._main_app.get_state()
-        return web.json_response(temp)
+    # @asyncio.coroutine
+    # def _get_state(self, request):
+    #     # TODO - return app state
+    #     temp = self._main_app.get_state()
+    #     return web.json_response(temp)
+    #
+    # @asyncio.coroutine
+    # def _set_state(self, request):
+    #     state_req = yield from request.json()
+    #     try:
+    #         # TODO - set app state
+    #         resp = self._main_app.process_state_req(state_req)
+    #         # TODO - catch proper exception
+    #     except Exception as lce:
+    #         self._logger.error("State request command failed: %s", str(lce))
+    #         return web.json_response({}, status=500, reason=str(lce))
+    #     return web.json_response(resp)
 
-    @asyncio.coroutine
-    def _set_state(self, request):
-        state_req = yield from request.json()
+    async def _process_form(self, request):
+        form_payload = await request.json()
+
+        # Inject result manipulation defaults
+        form_payload["result"] = self._form_result_config.cascade(
+            form_payload.get("result", {}))
+
         try:
-            # TODO - set app state
-            resp = self._main_app.process_state_req(state_req)
-            # TODO - catch proper exception
-        except Exception as lce:
-            self._logger.error("State request command failed: %s", str(lce))
-            return web.json_response({}, status=500, reason=str(lce))
-        return web.json_response(resp)
+            if self._form_request_clbk is not None:
+                resp = await self._form_request_clbk(form_payload)
+            else:
+                raise RestApiError("Form request processing not defined.")
+        except Exception as e:
+            self._logger.error("Error processing form: %s", str(e))
+            return web.json_response({}, status=500, reason=str(e))
+
+        if resp:
+            return web.Response(
+                headers=MultiDict({
+                    "Content-Disposition": "Attachment; filename=neco.pdf"
+                }),
+                body=resp.getvalue(), content_type="application/pdf"
+            )
+        else:
+            return web.Response()
 
     def _init_router(self):
         # Basic assets
@@ -126,7 +151,7 @@ class HttpHandler:
         # self._app.router.add_post('/api/command', self._set_state)
         # sockjs.add_endpoint(self._app, self._sockjs_handler, name='notifier',
         #                     prefix='/api/notifications/')
-        pass
+        self._app.router.add_post("/api/v1/form", self._process_form)
 
     # def _send_notification(self, msg_type, **kwargs):
     #     temp = {'type': msg_type, 'params': kwargs}

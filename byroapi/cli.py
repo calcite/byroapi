@@ -88,7 +88,6 @@ def main(ctx, config, get_config_template, fill_form, output):
         stream=sys.stdout)
 
     logging.getLogger("aiohttp").setLevel(logging.WARNING)
-    logging.getLogger("sockjs").setLevel(logging.WARNING)
 
     # Setup your main classes here
     byroapi = ByroApi(config_manager.config, loop=loop)

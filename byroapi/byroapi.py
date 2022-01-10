@@ -79,6 +79,7 @@ class ByroApi:
 
         filled_form = self._fill_form(form_payload)
 
+        appendix_msg = ""
         if form_payload["result"]["email"]["to"] is not None:
 
             # Configure sender (default from SMTP config, or dynamic
@@ -115,8 +116,15 @@ class ByroApi:
 
                 await yag.send(**send_params)
 
-            logger.info("Filled form %s sent to %s.", form_payload["template"],
-                        form_payload["result"]["email"]["to"])
+            appendix_msg = \
+                f'Mail sent to {form_payload["result"]["email"]["to"]}'
+
+        logger.info("Form %s processed for data: {%s}. %s",
+                    form_payload["template"],
+                    "; ".join([f"{k}: {v}" for k, v in
+                              form_payload["form_data"].items()]),
+                    appendix_msg
+                    )
 
         if form_payload["result"]["download"]:
             return filled_form

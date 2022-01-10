@@ -28,7 +28,7 @@ class HttpHandler:
         self._init_router()
         self._host_addr = None
         self._host_port = None
-        self._logger = logging.getLogger("byroapi.REST")
+        self._logger = logging.getLogger("byroapi")
 
         self._form_request_clbk = form_request_clbk
         self._template_update_clbk = template_update_clbk
@@ -58,8 +58,8 @@ class HttpHandler:
             else:
                 raise RestApiError("Form request processing not defined.")
         except Exception as e:
-            print(str(e))
-            msg = f"Error processing form: {str(e)}"
+            template = form_payload.get("template", "Unknown")
+            msg = f"Error processing form {template}: {str(e)}"
             self._logger.error(msg)
             return web.json_response({}, status=500, reason=msg)
 

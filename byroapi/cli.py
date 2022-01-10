@@ -92,12 +92,17 @@ def main(ctx, config, get_config_template, fill_form, output):
     # Setup your main classes here
     byroapi = ByroApi(config_manager.config, loop=loop)
 
-    try:
-        if fill_form is not None:
+    # Run statically for CLI fill-form
+    if fill_form is not None:
+        try:
             form_payload = yaml.load(fill_form, Loader=Loader)
             byroapi.fill_form_to_file(form_payload, output)
             sys.exit(0)
+        except Exception as e:
+            logger.exception(e)
+            sys.exit(1)
 
+    try:
         click.secho("Running byroapi application ..", fg='green')
 
         # Start the server

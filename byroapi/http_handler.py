@@ -37,6 +37,7 @@ class HttpHandler:
             "download": False,
             "download_name": None,
             "email": {
+                "from": None,
                 "to": None,
                 "subject": None,
                 "contents": None,
@@ -57,8 +58,10 @@ class HttpHandler:
             else:
                 raise RestApiError("Form request processing not defined.")
         except Exception as e:
-            self._logger.error("Error processing form: %s", str(e))
-            return web.json_response({}, status=500, reason=str(e))
+            print(str(e))
+            msg = f"Error processing form: {str(e)}"
+            self._logger.error(msg)
+            return web.json_response({}, status=500, reason=msg)
 
         if resp:
             download_name = form_payload["result"]["download_name"]
@@ -75,8 +78,24 @@ class HttpHandler:
         else:
             return web.Response()
 
+    async def _process_template(self, request):
+        try:
+            if self._template_update_clbk is not None:
+                self._template_update_clbk(
+                    request.match_info["template"],
+                    await request.read(),
+                    request.match_info["var_id"]
+                )
+            else:
+                raise RestApiError("Template update process not defined.")
+        except Exception as e:
+            msg = f"Error updating template: {str(e)}"
+            self._logger.error(msg)
+            return web.json_response({}, status=500, reason=msg)
+
     def _init_router(self):
         self._app.router.add_post("/api/v1/form", self._process_form)
+        self._app.router.add_put(r"/api/v1/template/{template}/{var_id}", self._process_template)
 
     async def run(self, host='0.0.0.0', port='8080'):
         # http://aiohttp.readthedocs.io/en/stable/_modules/aiohttp/web.html?highlight=run_app

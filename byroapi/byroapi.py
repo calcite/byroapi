@@ -80,8 +80,27 @@ class ByroApi:
         filled_form = self._fill_form(form_payload)
 
         if form_payload["result"]["email"]["to"] is not None:
+
+            # Configure sender (default from SMTP config, or dynamic
+            # from the API request
+            smtp_settings = self._config["email"]["smtp"].cascade()
+            if form_payload["result"]["email"]["from"] is not None:
+                if "user" in smtp_settings:
+                    logger.warning("Email 'from' field defined although user "
+                                   "set in SMTP configuration -> skipping.")
+                else:
+                    smtp_settings["user"] = form_payload["result"][
+                         "email"]["from"]
+            else:
+                if "user" not in smtp_settings:
+                    logger.warning(
+                        "User not configured in SMTP setting and no "
+                        "'from' field defined in the request -> Sender will "
+                        "be unknown.")
+
+            smtp_settings = dict(smtp_settings.copy_flat())
             # Sending the result by mail
-            async with AIOSMTP(**self._config["email"]["smtp"]) as yag:
+            async with AIOSMTP(**smtp_settings) as yag:
                 # Prepare the buffer
                 filled_form.seek(0)
 
@@ -89,7 +108,12 @@ class ByroApi:
                 filled_form.name = form_payload["result"]["email"][
                     "attachments"] or f"{form_payload['template']}.pdf"
                 form_payload["result"]["email"]["attachments"] = filled_form
-                await yag.send(**form_payload["result"]["email"])
+
+                # Get rid of the from field
+                send_params = dict(form_payload["result"]["email"])
+                send_params.pop("from", None)
+
+                await yag.send(**send_params)
 
             logger.info("Filled form %s sent to %s.", form_payload["template"],
                         form_payload["result"]["email"]["to"])
@@ -99,8 +123,24 @@ class ByroApi:
         else:
             return None
 
-    def _update_template(self, template_payload):
-        pass
+    def _update_template(self, template_id, template_data, var_id):
+        try:
+            template = self._templates[template_id]
+        except KeyError:
+            raise ByroApiError(f"Unknown template: {template_id}")
+
+        # Get template path
+        template_path = template.get_template_file_path(var_id)
+
+        # Save the template
+        try:
+            with template_path.open("wb") as template_file:
+                template_file.write(template_data)
+        except Exception as e:
+            raise ByroApiError(f"Could not save template to {template_path}")
+
+        logger.info("Template %s updated for %s to file %s", template_id,
+                    var_id, template_path)
 
     def start(self):
         # REST

@@ -46,7 +46,7 @@ class Template:
         if self._template_source.is_dir():
             self._template_file_pattern = \
                 self._template_config["template"]["path_value_substitution"][
-                    "pattern"]
+                    "pattern"] or "{0}.pdf"
             self._template_file_selector = \
                 self._template_config["template"]["path_value_substitution"][
                     "value"]
@@ -100,18 +100,24 @@ class Template:
                               field["coords"]["y"] * mm,
                               width=width, height=height, mask=field["mask"])
 
-    def get_template_path(self, values: dict) -> str:
+    def get_template_file_path(self, name_variable: str) -> Path:
         if self._template_source.is_dir():
-            try:
-                template_file = \
-                    self._template_source / self._template_file_pattern.format(
-                        values[self._template_file_selector])
-            except KeyError:
-                raise TemplateError(
-                    f"Pattern selector ({self._template_file_selector}) "
-                    f"not present in the value set.")
+            template_file = \
+                self._template_source / self._template_file_pattern.format(
+                    name_variable)
         else:
             template_file = self._template_source
+
+        return template_file
+
+    def get_template_path(self, values: dict) -> str:
+        try:
+            template_file = self.get_template_file_path(
+                values[self._template_file_selector])
+        except KeyError:
+            raise TemplateError(
+                f"Pattern selector ({self._template_file_selector}) "
+                f"not present in the value set.")
 
         return template_file.as_posix()
 
@@ -139,6 +145,7 @@ class Template:
 def draw_on_template(template_path: str,
                      output: BinaryIO,
                      drawing_function: Callable[[canvas.Canvas], None]) -> None:
+    # https://code-maven.com/add-image-to-existing-pdf-file-in-python
     draw_buffer = io.BytesIO()
     draw_canvas = canvas.Canvas(draw_buffer)
     drawing_function(draw_canvas)

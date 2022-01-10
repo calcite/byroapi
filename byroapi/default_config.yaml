@@ -51,7 +51,7 @@ templating:
       fields: []
 
 email:
-  smpt:  # SMTP settings as defined in YagMail: https://github.com/kootenpv/yagmail/blob/f24af871c670c29f30c34ef2a4ab5abc3b17d005/yagmail/sender.py#L22
+  smpt:  # SMTP settings as defined in YagMail: https://github.com/kootenpv/yagmail/blob/f24af871c670c29f30c34ef2a4ab5abc3b17d005/yagmail/sender.py#L22 , if you set the user, you will not be able to use the "from" field in the "result:email" part of the API request.
     oc_default: null
     oc_schema:
       type: dict

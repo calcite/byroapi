@@ -14,7 +14,7 @@ from typing import BinaryIO, Union
 from aioyagmail import AIOSMTP
 
 from .http_handler import HttpHandler
-from .template import Template, draw_on_template
+from .template import Template, draw_on_template, register_fonts
 from .base import ByroapiException
 
 
@@ -40,6 +40,8 @@ class ByroApi:
         self._http_task = None
 
         # Templates
+        register_fonts(self._config["templating"]["fonts"])
+
         self._templates = {}
         for template in self._config["templating"]["templates"]:
             self._templates[template["id"]] = Template(

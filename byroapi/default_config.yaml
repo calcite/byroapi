@@ -2,6 +2,17 @@ general:
   log_level: INFO  # Logging level [DEBUG, INFO, WARNING, ERROR, CRITICAL]
 
 templating:
+  fonts:
+    - name:  # Font name that can be used in the string field's custom properties
+        oc_default: null
+        oc_schema:
+          type: string
+          nullable: true
+      path:  # Path to the (TTF) file
+        oc_default: null
+        oc_schema:
+          type: string
+          nullable: true
   field_defaults:  # Lowest level details for field elements (better keep as-is)
     string:
       default: ""

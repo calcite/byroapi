@@ -4,6 +4,7 @@
 .. moduleauthor:: "Josef Nevrly <josef.nevrly@gmail.com>"
 """
 import io
+import logging
 from pathlib import Path
 from typing import BinaryIO, Callable, Any
 
@@ -12,6 +13,10 @@ from PyPDF2 import PdfFileReader, PdfFileWriter
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+import reportlab.rl_config
+
 from cascadict import CascaDict
 
 from .base import ByroapiException
@@ -19,6 +24,14 @@ from .base import ByroapiException
 
 class TemplateError(ByroapiException):
     pass
+
+
+# Disable warnings when importing fonts
+reportlab.rl_config.warnOnMissingFontGlyphs = 0
+
+
+# Logging
+logger = logging.getLogger("byroapi.template")
 
 
 class Template:
@@ -169,3 +182,13 @@ def draw_on_template(template_path: str,
     output_pdf.write(output)
 
     draw_buffer.close()
+
+
+def register_fonts(font_config: list) -> None:
+    for font in font_config:
+        if font["name"] is None:
+            continue
+        pdfmetrics.registerFont(TTFont(font["name"], font["path"]))
+        logger.info("Registered font %s (%s)", font["name"], font["path"])
+
+

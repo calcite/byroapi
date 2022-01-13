@@ -1,8 +1,8 @@
 general:
   log_level: INFO  # Logging level [DEBUG, INFO, WARNING, ERROR, CRITICAL]
 
-templating:
-  fonts:
+templating:  # This section contains all configuration regarding PDF processing
+  fonts:  # List of additional TTF fonts to be used in PDF processing
     - name:  # Font name that can be used in the string field's custom properties
         oc_default: null
         oc_schema:
@@ -58,17 +58,17 @@ templating:
             oc_default: null
             oc_schema:
               type: string
-      field_defaults: {}
-      fields: []
+      field_defaults: {}  # Default settings for each form field element
+      fields: []  # PDF form field definitions
 
-email:
+email:  # Configuration for email (can be used for sending processed PDF forms)
   smpt:  # SMTP settings as defined in YagMail: https://github.com/kootenpv/yagmail/blob/f24af871c670c29f30c34ef2a4ab5abc3b17d005/yagmail/sender.py#L22 , if you set the user, you will not be able to use the "from" field in the "result:email" part of the API request.
     oc_default: null
     oc_schema:
       type: dict
       nullable: true
 
-rest_api:
+rest_api:  # Configuration of the REST API endpoint
   addr: 0.0.0.0
   port: 8080
 

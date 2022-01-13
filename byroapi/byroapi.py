@@ -113,7 +113,7 @@ class ByroApi:
                 form_payload["result"]["email"]["attachments"] = filled_form
 
                 # Get rid of the from field
-                send_params = dict(form_payload["result"]["email"])
+                send_params = dict(form_payload["result"]["email"].copy_flat())
                 send_params.pop("from", None)
 
                 await yag.send(**send_params)

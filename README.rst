@@ -2,16 +2,6 @@
 Byroapi
 =======
 
-.. image:: https://img.shields.io/pypi/v/byroapi.svg
-        :target: https://pypi.python.org/pypi/byroapi
-
-.. image:: https://github.com/calcite/byroapi/actions/workflows/test.yaml/badge.svg?branch=main
-        :target: https://github.com/calcite//actions/workflows/test.yaml
-
-.. image:: https://readthedocs.org/projects/onacol/badge/?version=latest
-        :target: https://onacol.readthedocs.io/en/latest/?version=latest
-        :alt: Documentation Status
-
 .. image:: https://img.shields.io/lgtm/grade/python/g/calcite/byroapi.svg?logo=lgtm&logoWidth=18
         :target: https://lgtm.com/projects/g/calcite/byroapi/context:python
         :alt: Language grade: Python

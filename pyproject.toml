@@ -9,7 +9,7 @@ readme = "README.rst"
 
 repository = "https://github.com/JNevrly/byroapi"
 
-documentation = "https://byroapi.readthedocs.io"
+documentation = "https://github.com/JNevrly/byroapi"
 
 homepage = "https://github.com/JNevrly/byroapi"
 
@@ -32,6 +32,7 @@ aiohttp = "^3.7.4"
 PyPDF2 = "^1.26.0"
 reportlab = "^3.6.5"
 aioyagmail = "^0.0.4"
+PyYAML = "^6.0"
 
 
 [tool.poetry.scripts]

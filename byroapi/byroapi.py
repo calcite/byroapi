@@ -69,13 +69,11 @@ class ByroApi:
     def fill_form_to_file(self, form_payload: dict,
                           output_file: BinaryIO) -> None:
 
-        filled_form = self._fill_form(form_payload)
-        try:
-            output_file.write(filled_form.getbuffer())
-        except Exception as e:
-            raise e
-        finally:
-            filled_form.close()
+        with self._fill_form(form_payload) as filled_form:
+            try:
+                output_file.write(filled_form.getbuffer())
+            except Exception as e:
+                raise e
 
     async def _process_form(self, form_payload: dict) -> Union[BinaryIO, None]:
 

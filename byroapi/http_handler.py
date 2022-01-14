@@ -86,6 +86,7 @@ class HttpHandler:
                     await request.read(),
                     request.match_info["var_id"]
                 )
+                return web.Response(text="Template succesfully updated.\n")
             else:
                 raise RestApiError("Template update process not defined.")
         except Exception as e:

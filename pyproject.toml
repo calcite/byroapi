@@ -7,11 +7,11 @@ license = "MIT license"
 
 readme = "README.rst"
 
-repository = "https://github.com/JNevrly/byroapi"
+repository = "https://github.com/calcite/byroapi"
 
-documentation = "https://github.com/JNevrly/byroapi"
+documentation = "https://github.com/calcite/byroapi"
 
-homepage = "https://github.com/JNevrly/byroapi"
+homepage = "https://github.com/calcite/byroapi"
 
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
